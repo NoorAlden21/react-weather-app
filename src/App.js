@@ -7,18 +7,63 @@ import {
   ThemeProvider,
   Typography,
 } from "@mui/material";
-
 import Button from "@mui/material/Button";
 
 //icons
 import CloudIcon from "@mui/icons-material/Cloud";
+
+//React
+import { useEffect, useState } from "react";
+
+//external libraries
+import axios from "axios";
 
 const theme = createTheme({
   typography: {
     fontFamily: "IBM",
   },
 });
+
 function App() {
+  const [data, setData] = useState({
+    temp: null,
+    description: "",
+    min: null,
+    max: null,
+    icon: null,
+  });
+  const apiKey = "dd07956977dbbccc849cf9dd6bc050c9";
+  let cancelAxios = null;
+  useEffect(() => {
+    axios
+      .get(
+        `https://api.openweathermap.org/data/2.5/weather?units=metric&q=damascus&appid=${apiKey}`,
+        {
+          cancelToken: new axios.CancelToken((c) => {
+            cancelAxios = c;
+          }),
+        }
+      )
+      .then(function (res) {
+        console.log(res.data);
+        setData({
+          temp: Math.round(res.data.main.temp),
+          description: res.data.weather[0].description,
+          min: Math.round(res.data.main.temp_min),
+          max: Math.round(res.data.main.temp_max),
+          icon: `https://openweathermap.org/img/wn/${res.data.weather[0].icon}.png`,
+        });
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+
+    return () => {
+      console.log("canceling");
+      cancelAxios();
+    };
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <div className="App">
@@ -82,8 +127,22 @@ function App() {
                       flexDirection: "column",
                     }}
                   >
-                    <Typography variant="h1">38</Typography>
-                    <Typography variant="h6">broken clouds</Typography>
+                    {/* Temp */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography variant="h1" style={{ textAlign: "right" }}>
+                        {data.temp}
+                      </Typography>
+                      <img src={data.icon} alt="" />
+                    </div>
+                    {/*== Temp ==*/}
+
+                    <Typography variant="h6">{data.description}</Typography>
 
                     {/* min & max */}
                     <div
@@ -93,9 +152,9 @@ function App() {
                         alignItems: "center",
                       }}
                     >
-                      <h5>الصغرى: 28</h5>
+                      <h5>الصغرى: {data.min}</h5>
                       <h5 style={{ margin: "0px 5px" }}>|</h5>
-                      <h5>الكبرى: 40</h5>
+                      <h5>الكبرى: {data.max}</h5>
                     </div>
                     {/*== min & max ==*/}
                   </div>
