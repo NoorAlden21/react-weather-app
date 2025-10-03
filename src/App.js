@@ -17,6 +17,11 @@ import { useEffect, useState } from "react";
 
 //external libraries
 import axios from "axios";
+import moment from "moment/moment";
+import "moment/min/locales";
+import { useTranslation } from "react-i18next";
+
+moment.locale("en");
 
 const theme = createTheme({
   typography: {
@@ -25,6 +30,8 @@ const theme = createTheme({
 });
 
 function App() {
+  //states
+  const { t, i18n } = useTranslation();
   const [data, setData] = useState({
     temp: null,
     description: "",
@@ -32,9 +39,30 @@ function App() {
     max: null,
     icon: null,
   });
+  const [dateAndTime, setDateAndTime] = useState("");
+  const [locale, setLocale] = useState("en");
+
   const apiKey = "dd07956977dbbccc849cf9dd6bc050c9";
   let cancelAxios = null;
+
+  /* Event Handler */
+  function localeBtnHandler() {
+    if (locale === "ar") {
+      setLocale("en");
+      i18n.changeLanguage("en");
+      moment.locale("en");
+    } else {
+      setLocale("ar");
+      i18n.changeLanguage("ar");
+      moment.locale("ar");
+    }
+    setDateAndTime(moment().format("MMM Do YYYY"));
+  }
+  /*== Event Handler ==*/
+
+  useEffect(() => {}, []);
   useEffect(() => {
+    setDateAndTime(moment().format("MMM Do YYYY"));
     axios
       .get(
         `https://api.openweathermap.org/data/2.5/weather?units=metric&q=damascus&appid=${apiKey}`,
@@ -98,13 +126,13 @@ function App() {
                     justifyContent: "start",
                     alignItems: "end",
                   }}
-                  dir="rtl"
+                  dir={locale === "ar" ? "rtl" : "ltr"}
                 >
                   <Typography variant="h2" style={{ marginRight: "20px" }}>
-                    الرياض
+                    {t("Riyadh")}
                   </Typography>
                   <Typography variant="h5" style={{ marginRight: "20px" }}>
-                    الاثنين ٢٠٢٠-١٠-١٠{" "}
+                    {dateAndTime}
                   </Typography>
                 </div>
                 {/*=== city & time ===*/}
@@ -116,7 +144,7 @@ function App() {
                     justifyContent: "space-around",
                     alignItems: "center",
                   }}
-                  dir="rtl"
+                  dir={locale === "ar" ? "rtl" : "ltr"}
                 >
                   {/* detailes */}
                   <div
@@ -142,7 +170,7 @@ function App() {
                     </div>
                     {/*== Temp ==*/}
 
-                    <Typography variant="h6">{data.description}</Typography>
+                    <Typography variant="h6">{t(data.description)}</Typography>
 
                     {/* min & max */}
                     <div
@@ -152,9 +180,13 @@ function App() {
                         alignItems: "center",
                       }}
                     >
-                      <h5>الصغرى: {data.min}</h5>
+                      <h5>
+                        {t("min")}: {data.min}
+                      </h5>
                       <h5 style={{ margin: "0px 5px" }}>|</h5>
-                      <h5>الكبرى: {data.max}</h5>
+                      <h5>
+                        {t("max")}: {data.max}
+                      </h5>
                     </div>
                     {/*== min & max ==*/}
                   </div>
@@ -174,7 +206,7 @@ function App() {
 
             {/* translation button */}
             <div
-              dir="rtl"
+              dir={locale === "ar" ? "rtl" : "ltr"}
               style={{
                 width: "100%",
                 display: "flex",
@@ -182,8 +214,12 @@ function App() {
                 marginTop: "20px",
               }}
             >
-              <Button variant="text" style={{ color: "white" }}>
-                انجليزي
+              <Button
+                variant="text"
+                style={{ color: "white" }}
+                onClick={localeBtnHandler}
+              >
+                {locale === "en" ? "Arabic" : "انجليزي"}
               </Button>
             </div>
             {/*== translation button ==*/}
